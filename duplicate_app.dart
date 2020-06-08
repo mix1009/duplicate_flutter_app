@@ -10,10 +10,42 @@ String srcProjectPath;
 String dstProjectPath;
 bool forceOverwrite = false;
 
+void deleteAllDir(String path) {
+  try {
+    Directory(path).deleteSync(recursive: true);
+  } catch (_) {}
+}
+
+void copyDirRecursive(String src, String dst) {
+  final entries = Directory(src).listSync(recursive: true);
+  for (final entry in entries) {
+    final newPath = entry.path.replaceFirst(src, dst);
+    final relativePath = entry.path.replaceFirst(src, '');
+    if (entry is Directory) {
+      if (relativePath.startsWith('/build')) continue;
+      if (relativePath.startsWith('/.git')) continue;
+      if (relativePath.startsWith('/.dart_tool')) continue;
+      Directory(newPath).createSync(recursive: true);
+    }
+  }
+  for (final entry in entries) {
+    final oldPath = entry.path;
+    final relativePath = entry.path.replaceFirst(src, '');
+    final newPath = entry.path.replaceFirst(src, dst);
+    if (entry is File) {
+      if (relativePath.startsWith('/build')) continue;
+      if (relativePath.startsWith('/.git')) continue;
+      if (relativePath.startsWith('/.dart_tool')) continue;
+      final bytes = File(oldPath).readAsBytesSync();
+      File(newPath).writeAsBytesSync(bytes);
+    }
+  }
+}
+
 Future<bool> copyProjectFolder() async {
   // remove $newName folder (for testing)
   if (forceOverwrite) {
-    await Process.run('rm', ['-rf', dstProjectPath]);
+    deleteAllDir(dstProjectPath);
   }
 
   if (Directory(dstProjectPath).existsSync()) {
@@ -22,12 +54,7 @@ Future<bool> copyProjectFolder() async {
   }
 
   // copy project folder
-  await Process.run('cp', ['-R', srcProjectPath, dstProjectPath]);
-
-  // remove .git, build, .dart_tool folder
-  await Process.run('rm', ['-rf', '$dstProjectPath/.git']);
-  await Process.run('rm', ['-rf', '$dstProjectPath/build']);
-  await Process.run('rm', ['-rf', '$dstProjectPath/.dart_tool']);
+  copyDirRecursive(srcProjectPath, dstProjectPath);
 
   return true;
 }
@@ -188,6 +215,8 @@ void main(List<String> arguments) async {
     if (test) return;
     if (await copyProjectFolder()) {
       await updateFiles();
+
+      print('project copied to \'$dstProjectPath\'');
     }
   }
 }
