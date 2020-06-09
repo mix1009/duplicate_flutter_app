@@ -1,6 +1,6 @@
 # duplicate_app
 
-duplicate_app is a dart app for duplicating Flutter project folder. This app only runs on Unix based machines.
+duplicate_app is a dart app for duplicating Flutter project folder. Tested on Mac and Windows.
 
 
 ## Getting Started
@@ -20,5 +20,5 @@ Android src path is also taken care of.
 
 -f : force overwrite. It will delete new_project folder if avaliable.
 
--t : test mode. It will output project parameters.
+-t : test mode. It will output project parameters only and not do copy.
 
