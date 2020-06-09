@@ -191,6 +191,9 @@ void main(List<String> arguments) async {
     exitCode = 2;
   } else {
     srcProjectPath = argResults.rest[0];
+    if (Platform.isWindows) {
+      srcProjectPath = srcProjectPath.replaceAll('\\','/');
+    }
     if (srcProjectPath.endsWith('/')) {
       // remove trailing /
       srcProjectPath = srcProjectPath.substring(0, srcProjectPath.length - 1);
